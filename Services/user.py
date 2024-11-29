@@ -43,8 +43,9 @@ def update(user:UserBase, db:Session, id:int):
     }
     db.query(User).filter(User.id == id).update(update_data)
     db.commit()
+    db.refresh(user_exists)
 
-    return db.query(User).filter(User.id == id).first()
+    return user_exists
 
 
 def get_all_users(db:Session):

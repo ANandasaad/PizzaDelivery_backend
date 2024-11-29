@@ -1,7 +1,7 @@
 from Schemas.menu import PizzaMenu
 from fastapi import HTTPException,status
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from Models.models import Menu
 
 def createMenu(request: PizzaMenu, db: Session):

@@ -36,7 +36,7 @@ class PizzaOption(Base):
     menu_id = Column(Integer, ForeignKey("menus.id"))
     name = Column(String, unique=True,nullable=False)
     description = Column(Text, nullable=True)
-    type = Column(Enum(PizzaType), nullable=False)
+    type = Column(Enum(PizzaType), nullable=False, default=PizzaType.VEG)
     image_url=Column(String, nullable=True)
     base_price = Column(Float, nullable=False)
     menu= relationship("Menu", back_populates="pizzas")
