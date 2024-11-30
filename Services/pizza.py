@@ -4,6 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from Models.models import PizzaOption,Menu
 
+from Schemas.pizza import FilterParams,SortOrder
+
+
+
+
 async def createPizzaOption(request: PizzaOptionCreate, db: Session):
     try:
        # Check if menu exists
@@ -98,10 +103,29 @@ async def getPizzaOptionById(id:int, db:Session):
             detail="An unexpected error occurred. Please try again."
         )
 
-async def getAllPizzaOptions(db:Session):
+async def getAllPizzaOptions(db:Session,filter:FilterParams):
     try:
         # check if options exist
-        options = db.query(PizzaOption).all()
+
+        options = db.query(PizzaOption)
+        if filter.search:
+            options = options.filter(PizzaOption.name.ilike(f"%{filter.search}%"))
+        if filter.type:
+            options = options.filter(PizzaOption.type == filter.type.value)
+
+       #sort by price
+        if filter.sort:
+            if filter.sort==SortOrder.ASC:
+                options = options.order_by(PizzaOption.base_price.asc())
+            else:
+                options = options.order_by(PizzaOption.base_price.desc())
+
+
+        # Get count of available
+        count = options.count()
+
+        # Paginate options
+        options = options.offset(filter.offset).limit(filter.limit).all()
         if not options:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -111,6 +135,9 @@ async def getAllPizzaOptions(db:Session):
         # Convert SQLAlchemy object to dictionary or Pydantic model
         return {
             "message": "Pizza Options fetched successfully",
+            "total": count,
+            "limit": filter.limit,
+            "offset": filter.offset,
             "data": options
         }
     except IntegrityError:
