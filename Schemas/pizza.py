@@ -1,9 +1,12 @@
+
 import enum
 
 from pydantic import BaseModel, Field
 
 from Models.models import PizzaType
 from typing import List
+
+from Schemas.customization import CustomizationPizzaResult
 
 
 class PizzaOption(BaseModel):
@@ -19,6 +22,7 @@ class PizzaOptionCreate(PizzaOption):
 
 class PizzaResult(PizzaOption):
     id: int
+    customizations: List[CustomizationPizzaResult]
     class Config:
         orm_mode = True
 class PizzaOptionUpdate(BaseModel):
@@ -39,11 +43,11 @@ class PizzaOptionListResponse(BaseModel):
 
 class SortOrder(str, enum.Enum):
     ASC = "Low-to-High"  # Low to High
-    DESC = "High-to-Low"  # High to Low
+    DESC = "High-to-Low"   # High to Low
 class FilterParams(BaseModel):
     limit: int = Field(10, gt=0, le=100, description="Number of records to fetch")
     offset: int = Field(0, ge=0, description="Number of records to skip")
     search: str = Field("", description="Search term for pizza options")
     type: PizzaType | None = Field(None, description="List of pizza types to filter by")
-    sort: SortOrder | None = Field("", description="Sort by price : High to Low or Low to High")
+    sort: SortOrder | None = Field(None, description="Sort by price : High to Low or Low to High")
 

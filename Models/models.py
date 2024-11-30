@@ -47,7 +47,7 @@ class CustomizationOption(Base):
     id = Column(Integer, primary_key=True, index=True)
     pizza_option_id = Column(Integer, ForeignKey("pizza_options.id"))
     type = Column(Enum(CustomizationType), nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String,unique=True, nullable=False)
     price = Column(Float, nullable=False, default=0.0)
     pizza_option = relationship("PizzaOption", back_populates="customizations")
 
