@@ -1,10 +1,17 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 from Models.models import OrderStatus, PaymentStatus
 from typing import List
 
+from Schemas.customization import CustomizationPizzaResult
 
 
+class OrderItemBase(BaseModel):
+    pizza_option_id: int
+    quantity: int
+    price: float
 
 class Order(BaseModel):
     customer_id: int
@@ -16,6 +23,7 @@ class Order(BaseModel):
 
 class CustomizationOption(BaseModel):
     customization_id: int
+    customization:CustomizationPizzaResult
 
 class OrderItem(BaseModel):
     pizza_option_id: int
@@ -61,4 +69,26 @@ class OrderCreate(Order):
                 ]
             }
         }
+class OrderItemResponse(OrderItemBase):
+    id:int
+    order_id:int
+    selected_customizations:List[CustomizationOption]
 
+    class Config:
+        orm_mode = True
+
+
+class OrderCreateResponse(Order):
+    id: int
+    order_items: List[OrderItemResponse]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+class OrderResponse(BaseModel):
+    message: str
+    data: OrderCreateResponse
+class OrderListResponse(BaseModel):
+    message: str
+    data: List[OrderCreateResponse]
