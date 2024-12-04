@@ -24,11 +24,13 @@ class Order(BaseModel):
 class CustomizationOption(BaseModel):
     customization_id: int
     customization:CustomizationPizzaResult
+class CustomizationOptionBase(BaseModel):
+    customization_id: int
 
 class OrderItem(BaseModel):
     pizza_option_id: int
     quantity: int
-    customizations:List[CustomizationOption] | None=None
+    customizations:List[CustomizationOptionBase] | None=None
 
     class Config:
         schema_extra = {

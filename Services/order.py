@@ -3,10 +3,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem
 from Schemas.order import OrderCreate
+import razorpay
 
 
-
-
+razorpay_client = razorpay.Client(auth=("rzp_test_EbeJ1sVuROEPXt", "1j8KhICswNhMfDMTHpWwto29"))
 async def createOrder(request: OrderCreate, db: Session):
     try:
         # Check if an order already exists for the customer with a PENDING status
@@ -94,6 +94,17 @@ async def createOrder(request: OrderCreate, db: Session):
         db.commit()
         db.refresh(new_order)
 
+        # Create a Razorpay order
+        razorpay_order = razorpay_client.order.create(data={
+            "amount": int(total_order_price * 100),  # Convert to paise
+            "currency": "INR",
+            "receipt": f"order_{new_order.id}"
+        })
+
+        # Link Razorpay order ID to the order
+        new_order.payment_gateway_order_id = razorpay_order.get("id")
+        db.commit()
+
         return {
             "message": "Order created successfully",
             "data": new_order
@@ -103,6 +114,12 @@ async def createOrder(request: OrderCreate, db: Session):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
+        )
+    except razorpay.errors.RazorpayError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Razorpay Error: {str(e)}"
         )
 
 async def getOrders(db:Session):

@@ -28,3 +28,4 @@ async def get_orders(db:db_dependency):
 @order_router.get("/{id}",response_model=OrderResponse, status_code=status.HTTP_200_OK)
 async def get_order(id:int,db:db_dependency):
     return await getOrderById(db=db,id=id)
+

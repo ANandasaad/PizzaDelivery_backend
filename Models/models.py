@@ -68,6 +68,7 @@ class PaymentStatus(str, enum.Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
+
 class Order(Base):
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, index=True)
@@ -77,7 +78,9 @@ class Order(Base):
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     total_price = Column(Float, nullable=False)
+    payment_gateway_order_id = Column(String, nullable=True)
     customer = relationship("User", back_populates="orders")
+    payments = relationship("Payment", back_populates="order", cascade="all, delete")  # Added relationship
     order_items = relationship("OrderItem", back_populates="order", cascade="all, delete")
     created_at = Column(DateTime,default=func.now(), nullable=False)
     updated_at = Column(DateTime,default=func.now(), nullable=False)
@@ -104,4 +107,17 @@ class SelectedCustomization(Base):
     order_item = relationship("OrderItem", back_populates="selected_customizations")
     customization = relationship("CustomizationOption", back_populates="selected_customizations")
 
-    
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    razorpay_order_id = Column(String, nullable=False, unique=True)  # Razorpay order ID
+    razorpay_payment_id = Column(String, nullable=False, unique=True)  # Razorpay payment ID
+    razorpay_signature = Column(String, nullable=True)  # Razorpay signature for verification
+    created_at = Column(DateTime, default=func.now(), nullable=False)  # Payment creation time
+    payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
+    payment_amount = Column(Float , nullable=False, default=0.0)
+
+    # Relationship with the order
+    order = relationship("Order", back_populates="payments")

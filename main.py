@@ -6,6 +6,7 @@ from Routers.menu import menu_router
 from Routers.pizza import pizza_router
 from Routers.customization import customization_router
 from Routers.order import order_router
+from Routers.payment import payment_router
 
 app = FastAPI()
 
@@ -16,3 +17,4 @@ app.include_router(menu_router)
 app.include_router(pizza_router)
 app.include_router(customization_router)
 app.include_router(order_router)
+app.include_router(payment_router)
