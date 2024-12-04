@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from Models.models import OrderStatus, PaymentStatus
+from Models.models import OrderStatus, PaymentStatus,OrderStatusByAdmin,OrderStatusByDelivery
 from typing import List
 
 from Schemas.customization import CustomizationPizzaResult
@@ -18,6 +18,7 @@ class Order(BaseModel):
     quantity: int
     address: str
     total_price: float
+    payment_gateway_order_id: str
     status:OrderStatus
     payment_status:PaymentStatus
 
@@ -94,3 +95,4 @@ class OrderResponse(BaseModel):
 class OrderListResponse(BaseModel):
     message: str
     data: List[OrderCreateResponse]
+

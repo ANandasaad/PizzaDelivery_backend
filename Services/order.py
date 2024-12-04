@@ -1,8 +1,9 @@
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem
+from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem,OrderStatusByAdmin
 from Schemas.order import OrderCreate
+
 import razorpay
 
 
@@ -152,6 +153,28 @@ async def getOrderById(db:Session, id:int):
             )
         return {
             "message": "Order fetched successfully",
+            "data": order
+        }
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
+
+async def updateOrderStatusById(id:int,db:Session,request:OrderStatusByAdmin):
+    try:
+        order= db.query(Order).filter(Order.id == id, Order.status=="confirmed").first()
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        print(request)
+        order.status=request
+        db.commit()
+        return {
+            "message": "Order updated successfully",
             "data": order
         }
     except IntegrityError:

@@ -54,6 +54,16 @@ class CustomizationOption(Base):
     pizza_option = relationship("PizzaOption", back_populates="customizations")
     selected_customizations = relationship("SelectedCustomization", back_populates="customization")
 
+
+class OrderStatusByAdmin(str,enum.Enum):
+    PREPARING = "preparing"
+    READY = "ready"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+
+class OrderStatusByDelivery(str,enum.Enum):
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
@@ -62,6 +72,7 @@ class OrderStatus(str, enum.Enum):
     OUT_FOR_DELIVERY = "out_for_delivery"
     DELIVERED = "delivered"
     CANCELLED = "cancelled"
+
 
 class PaymentStatus(str, enum.Enum):
     PENDING = "pending"

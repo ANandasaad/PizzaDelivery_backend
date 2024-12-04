@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 from Database.db import get_db
 
 from Schemas.order import OrderCreate
-from Services.order import createOrder,getOrders,getOrderById
+from Services.order import createOrder,getOrders,getOrderById,updateOrderStatusById
 
 from Schemas.order import OrderResponse,OrderListResponse
+from Models.models import OrderStatusByAdmin
 
 
 
@@ -28,4 +29,8 @@ async def get_orders(db:db_dependency):
 @order_router.get("/{id}",response_model=OrderResponse, status_code=status.HTTP_200_OK)
 async def get_order(id:int,db:db_dependency):
     return await getOrderById(db=db,id=id)
+
+@order_router.put("/{id}",response_model=OrderResponse, status_code=status.HTTP_200_OK)
+async def order_status_by_admin(id:int,db:db_dependency,request:OrderStatusByAdmin):
+    return await updateOrderStatusById(db=db,id=id,request=request)
 
