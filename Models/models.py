@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     CUSTOMER = "customer"
-    DELIVERY = "deliver"
+    DELIVERY_PERSONAL = "delivery_personal"
 
 class User(Base):
     __tablename__ = "users"
@@ -16,6 +16,23 @@ class User(Base):
     role = Column(Enum(UserRole), nullable=False, default=UserRole.CUSTOMER)
     is_active = Column(Boolean, nullable=False, default=True)
     orders = relationship("Order", back_populates="customer")
+
+
+class DeliveryPersonal(Base):
+    __tablename__ = "delivery_personals"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)
+    is_available = Column(Boolean, nullable=False, default=True)
+    current_latitude = Column(Float, nullable=True, default=0.0)
+    current_longitude = Column(Float, nullable=True, default=0.0)
+    customer_order_id=Column(Integer, ForeignKey("orders.id",ondelete="CASCADE"), nullable=True)
+    orders = relationship("Order", back_populates="delivery_personals")
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), nullable=False)
+
+
 
 class CustomizationType(str,enum.Enum):
     SIZE = "size"
@@ -89,10 +106,13 @@ class Order(Base):
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     total_price = Column(Float, nullable=False)
+    estimated_preparation_time = Column(Integer, nullable=True)  # Preparation time in minutes
+    expected_ready_time = Column(DateTime, nullable=True)  # Calculated ready time
     payment_gateway_order_id = Column(String, nullable=True)
     customer = relationship("User", back_populates="orders")
     payments = relationship("Payment", back_populates="order", cascade="all, delete")  # Added relationship
     order_items = relationship("OrderItem", back_populates="order", cascade="all, delete")
+    delivery_personals = relationship("DeliveryPersonal", back_populates="orders")
     created_at = Column(DateTime,default=func.now(), nullable=False)
     updated_at = Column(DateTime,default=func.now(), nullable=False)
 

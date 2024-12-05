@@ -1,9 +1,13 @@
-from fastapi import HTTPException, status
+from typing import Annotated
+
+from fastapi import HTTPException, status,Depends
 from sqlalchemy.exc import IntegrityError
 from config.hashing import hashPassword
+from config.O2Auth import get_current_user
 from Schemas.users import UserCreate
 from Models.models import User
 from sqlalchemy.orm import Session
+
 
 
 
@@ -48,7 +52,8 @@ def update(user:UserBase, db:Session, id:int):
     return user_exists
 
 
-def get_all_users(db:Session):
+def get_all_users(db:Session,current_user:Annotated[User, Depends(get_current_user)]):
+
     return db.query(User).all()
 
 def getUserById(db:Session, id:int):

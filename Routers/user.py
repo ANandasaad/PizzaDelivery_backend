@@ -6,6 +6,8 @@ from Schemas.users import UserCreate, UserResponse
 from Services.user import register,update,get_all_users,getUserById,deleteUserById
 
 from Schemas.users import UserBase
+from config.O2Auth import get_current_user
+from Models.models import User
 
 db_dependency= Annotated[Session,Depends(get_db)]
 user_router=APIRouter(
@@ -21,8 +23,9 @@ def update_user(request:UserBase, db:db_dependency, id:int):
     return update(user=request,db=db,id=id)
 
 @user_router.get("/get-all", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
-def get_all(db:db_dependency):
-    return get_all_users(db=db)
+def get_all(db:db_dependency,current_user:Annotated[User, Depends(get_current_user)]):
+
+    return get_all_users(db=db,current_user=current_user)
 
 @user_router.get("/get-user/{id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
 def get_user(id:int, db:db_dependency):
