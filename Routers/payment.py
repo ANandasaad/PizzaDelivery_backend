@@ -7,9 +7,7 @@ from Database.db import get_db
 
 
 from Services.payment import verifyPayment
-from fastapi.responses import JSONResponse
 
-from Schemas.payment import WebhookEvent
 
 payment_router=APIRouter(
     prefix="/payment",

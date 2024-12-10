@@ -1,14 +1,15 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem,OrderStatusByAdmin
+from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem,OrderStatusByAdmin,User
 from Schemas.order import OrderCreate
-
+from config.O2Auth import get_current_user
+from typing import Annotated
 import razorpay
 
 
 razorpay_client = razorpay.Client(auth=("rzp_test_EbeJ1sVuROEPXt", "1j8KhICswNhMfDMTHpWwto29"))
-async def createOrder(request: OrderCreate, db: Session):
+async def createOrder(request: OrderCreate, db: Session, current_user: Annotated[User, Depends(get_current_user)]):
     try:
         # Check if an order already exists for the customer with a PENDING status
         order = db.query(Order).filter(
@@ -22,7 +23,7 @@ async def createOrder(request: OrderCreate, db: Session):
 
         # Create a new order
         new_order = Order(
-            customer_id=request.customer_id,
+            customer_id=current_user.id,
             quantity=request.quantity,
             address=request.address,
             total_price=request.total_price,

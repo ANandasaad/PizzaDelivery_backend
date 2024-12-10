@@ -12,7 +12,7 @@ from sqlalchemy.sql.annotation import Annotated
 async def loginUser(db:Session,form_data:Annotated[OAuth2PasswordRequestForm,Depends()]):
     try:
         # check is user exists
-        print(form_data)
+
         user=db.query(User).filter(User.email==form_data.username).first()
         if not user:
             raise HTTPException(

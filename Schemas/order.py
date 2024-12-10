@@ -14,7 +14,7 @@ class OrderItemBase(BaseModel):
     price: float
 
 class Order(BaseModel):
-    customer_id: int
+
     quantity: int
     address: str
     total_price: float

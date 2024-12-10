@@ -7,9 +7,9 @@ from Database.db import get_db
 
 from Schemas.order import OrderCreate
 from Services.order import createOrder,getOrders,getOrderById,updateOrderStatusById
-
+from config.O2Auth import get_current_user
 from Schemas.order import OrderResponse,OrderListResponse
-from Models.models import OrderStatusByAdmin
+from Models.models import OrderStatusByAdmin,User
 
 
 
@@ -19,8 +19,8 @@ order_router = APIRouter(
 )
 db_dependency= Annotated[Session,Depends(get_db)]
 @order_router.post("/",response_model=OrderResponse,status_code=status.HTTP_201_CREATED)
-async def create_order(request:OrderCreate,db:db_dependency):
-    return await createOrder(request=request,db=db)
+async def create_order(request:OrderCreate,db:db_dependency, current_user: Annotated[User, Depends(get_current_user)]):
+    return await createOrder(request=request,db=db, current_user=current_user)
 
 @order_router.get("/",response_model=OrderListResponse, status_code=status.HTTP_200_OK)
 async def get_orders(db:db_dependency):

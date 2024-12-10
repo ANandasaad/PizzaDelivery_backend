@@ -19,8 +19,8 @@ user_router=APIRouter(
 def create_user(request:UserCreate, db:db_dependency):
      return register(user=request,db=db)
 @user_router.put("/update/{id}", response_model=UserResponse, status_code=status.HTTP_202_ACCEPTED)
-def update_user(request:UserBase, db:db_dependency, id:int):
-    return update(user=request,db=db,id=id)
+def update_user(request:UserBase, db:db_dependency, id:int, current_user:Annotated[User, Depends(get_current_user)]):
+    return update(user=request,db=db,id=id, current_user=current_user)
 
 @user_router.get("/get-all", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
 def get_all(db:db_dependency,current_user:Annotated[User, Depends(get_current_user)]):

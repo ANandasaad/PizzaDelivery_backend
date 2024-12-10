@@ -33,7 +33,12 @@ def register(user:UserCreate, db:Session):
      db.rollback()
      return {"error": "An unexpected error occurred. Please try again."}
 
-def update(user:UserBase, db:Session, id:int):
+def update(user:UserBase, db:Session, id:int, current_user:Annotated[User, Depends(get_current_user)]):
+    if current_user.role !="customer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to perform this action"
+        )
     user_exists=db.query(User).filter(User.id==id).first()
     if not user_exists:
         raise HTTPException(
@@ -54,6 +59,11 @@ def update(user:UserBase, db:Session, id:int):
 
 def get_all_users(db:Session,current_user:Annotated[User, Depends(get_current_user)]):
 
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to perform this action"
+        )
     return db.query(User).all()
 
 def getUserById(db:Session, id:int):
