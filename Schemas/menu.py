@@ -7,6 +7,9 @@ from Schemas.pizza import PizzaResult
 class PizzaMenu(BaseModel):
     name: str
     description: str | None = None
+    restaurant_id: int
+
+
 
 
 class Return(PizzaMenu):

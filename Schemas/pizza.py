@@ -16,6 +16,8 @@ class PizzaOption(BaseModel):
     image_url: str | None = None
     base_price: float
     menu_id: int
+    rating: float
+    isAvailable: bool
 
 class PizzaOptionCreate(PizzaOption):
     pass

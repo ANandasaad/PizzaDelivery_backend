@@ -1,4 +1,6 @@
 import enum
+import time
+
 from Database.db import Base
 from sqlalchemy import Column, Integer, String, Boolean, Enum, Text, ForeignKey, Float, DateTime,func
 from sqlalchemy.orm import relationship
@@ -46,20 +48,29 @@ class Menu(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String,unique=True, nullable=False)
     description = Column(Text, nullable=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False,)
+
     pizzas = relationship("PizzaOption", back_populates="menu")
+    restaurants = relationship("Restaurant", back_populates="menus")
 
 class PizzaOption(Base):
     __tablename__ = "pizza_options"
     id = Column(Integer, primary_key=True, index=True)
     menu_id = Column(Integer, ForeignKey("menus.id"))
+
     name = Column(String, unique=True,nullable=False)
     description = Column(Text, nullable=True)
     type = Column(Enum(PizzaType), nullable=False, default=PizzaType.VEG)
     image_url=Column(String, nullable=True)
     base_price = Column(Float, nullable=False)
+    rating=Column(Float, nullable=True, default=0.0)
+    isAvailable = Column(Boolean, nullable=False, default=True)
     menu= relationship("Menu", back_populates="pizzas")
+    # relationships
     customizations= relationship("CustomizationOption", back_populates="pizza_option")
     order_items = relationship("OrderItem", back_populates="pizza_option")
+
+
 
 class CustomizationOption(Base):
     __tablename__="customization"
@@ -106,8 +117,8 @@ class Order(Base):
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     total_price = Column(Float, nullable=False)
-    estimated_preparation_time = Column(Integer, nullable=True)  # Preparation time in minutes
-    expected_ready_time = Column(DateTime, nullable=True)  # Calculated ready time
+    estimated_preparation_time = Column(Integer, nullable=True, default=25)  # Preparation time in minutes
+    expected_ready_time = Column(Integer, nullable=True, default=20)  # Calculated ready time
     payment_gateway_order_id = Column(String, nullable=True)
     customer = relationship("User", back_populates="orders")
     payments = relationship("Payment", back_populates="order", cascade="all, delete")  # Added relationship
@@ -152,3 +163,17 @@ class Payment(Base):
 
     # Relationship with the order
     order = relationship("Order", back_populates="payments")
+
+class Restaurant(Base):
+    __tablename__ = "restaurants"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    address = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), nullable=False)
+    rating = Column(Float, nullable=True, default=0.0)
+    # Relationship with the menu
+    menus= relationship("Menu", back_populates="restaurants")

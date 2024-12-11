@@ -21,7 +21,12 @@ class Order(BaseModel):
     payment_gateway_order_id: str
     status:OrderStatus
     payment_status:PaymentStatus
-
+class OrderCreateModel(BaseModel):
+    quantity: int
+    address: str
+    total_price: float
+    status: OrderStatus
+    payment_status: PaymentStatus
 class CustomizationOption(BaseModel):
     customization_id: int
     customization:CustomizationPizzaResult
@@ -48,7 +53,7 @@ class OrderItem(BaseModel):
 
 
 
-class OrderCreate(Order):
+class OrderCreate(OrderCreateModel):
       items:List[OrderItem]
 
       class Config:

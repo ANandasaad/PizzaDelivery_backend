@@ -11,9 +11,10 @@ import razorpay
 razorpay_client = razorpay.Client(auth=("rzp_test_EbeJ1sVuROEPXt", "1j8KhICswNhMfDMTHpWwto29"))
 async def createOrder(request: OrderCreate, db: Session, current_user: Annotated[User, Depends(get_current_user)]):
     try:
+        print(current_user)
         # Check if an order already exists for the customer with a PENDING status
         order = db.query(Order).filter(
-            Order.customer_id == request.customer_id, Order.status == OrderStatus.PENDING
+            Order.customer_id == current_user.id, Order.status == OrderStatus.PENDING
         ).first()
         if order:
             raise HTTPException(
@@ -117,12 +118,12 @@ async def createOrder(request: OrderCreate, db: Session, current_user: Annotated
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
         )
-    except razorpay.errors.RazorpayError as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Razorpay Error: {str(e)}"
-        )
+    # except razorpay.exceptions.Error as e:
+    #     db.rollback()
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail=f"Razorpay Error: {str(e)}"
+    #     )
 
 async def getOrders(db:Session):
     try:

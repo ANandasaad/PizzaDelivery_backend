@@ -7,6 +7,7 @@ from .Routers.deliveryPersonal import deliveryPersonal_router
 from .Routers.order import order_router
 from .Routers.payment import payment_router
 from .Routers.auth import auth_router
+from .Routers.restaurant import restaurant_router
 from .Schemas.users import *
 from .Services.user import *
 from .Services.menu import *
@@ -16,6 +17,7 @@ from .Services.payment import *
 from .Services.auth import *
 from .Services.customization import *
 from .Services.deliveryPersonal import *
+from .Services.restaurant import *
 from .config.hashing import *
 from .Schemas.menu import *
 from .Schemas.pizza import *
@@ -24,3 +26,4 @@ from .Schemas.customization import *
 from .Schemas.order import *
 from .Schemas.deliveryPersonal import *
 from .Schemas.auth import *
+from .Schemas.restaurant import *

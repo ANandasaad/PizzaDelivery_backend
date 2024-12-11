@@ -2,10 +2,18 @@ from Schemas.menu import PizzaMenu
 from fastapi import HTTPException,status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
-from Models.models import Menu
+from Models.models import Menu,Restaurant
 
 def createMenu(request: PizzaMenu, db: Session):
     try:
+        #check if resturant is existing
+        restaurant = db.query(Restaurant).filter(Restaurant.id == request.restaurant_id).first()
+        if not restaurant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Restaurant not found"
+            )
+
         # Check if menu already exists
         menu = db.query(Menu).filter(Menu.name == request.name).first()
         if menu:
@@ -15,7 +23,7 @@ def createMenu(request: PizzaMenu, db: Session):
             )
 
         # Create a new menu
-        new_menu = Menu(name=request.name, description=request.description)
+        new_menu = Menu(name=request.name, description=request.description, restaurant_id=request.restaurant_id)
         db.add(new_menu)
         db.commit()
         db.refresh(new_menu)
