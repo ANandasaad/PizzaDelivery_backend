@@ -6,33 +6,49 @@ from typing import Annotated
 from config.O2Auth import get_current_user
 
 from config.geolocation import get_location
+from config.envFile import GOOGLE_MAPS_API_KEY
 
-GOOGLE_MAPS_API_KEY ="AIzaSyBbom_9El8YWDyHeq0zp-rWRX_1QZJTkWI"
-async def createRestaurant(request:CreateRestaurant, db:Session, current_user:Annotated[User, Depends(get_current_user)]):
+
+async def createRestaurant(request: CreateRestaurant, db: Session,
+                           current_user: Annotated[User, Depends(get_current_user)]):
     try:
-        # fectch longitude and latitude
+        # Check if restaurant already exists
+        restaurant = db.query(Restaurant).filter(Restaurant.name == request.name).first()
+        if restaurant:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Restaurant already exists"
+            )
 
-        response = await get_location(GOOGLE_MAPS_API_KEY)
+        # Fetch geolocation (latitude, longitude) using Google Maps API
+        response = await get_location(GOOGLE_MAPS_API_KEY, request.address)
         print(response)
-        # create a new restaurant
+
+        # Create a new restaurant entry
         new_restaurant = Restaurant(
             name=request.name,
             address=request.address,
             phone=request.phone,
-            latitude=response["location"]["lat"],
-            longitude=response["location"]["lng"],
+            latitude=response["lat"],
+            longitude=response["lng"],
+
         )
         db.add(new_restaurant)
         db.commit()
         db.refresh(new_restaurant)
+
         return {
             "message": "Restaurant created successfully",
             "data": new_restaurant
         }
+
+    except HTTPException as e:
+        # Handling specific HTTPException raised during geolocation fetch or other checks
+        raise e
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail=f"An error occurred: {str(e)}"
         )
-
