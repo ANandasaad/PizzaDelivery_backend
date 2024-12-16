@@ -1,12 +1,16 @@
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem,OrderStatusByAdmin,User
+from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem,OrderStatusByAdmin,User,Restaurant
 from Schemas.order import OrderCreate
 from config.O2Auth import get_current_user
 from typing import Annotated
 import razorpay
 
+
+from config.eta import get_eta
+
+from config.envFile import GOOGLE_MAPS_API_KEY
 
 razorpay_client = razorpay.Client(auth=("rzp_test_EbeJ1sVuROEPXt", "1j8KhICswNhMfDMTHpWwto29"))
 async def createOrder(request: OrderCreate, db: Session, current_user: Annotated[User, Depends(get_current_user)]):
@@ -21,15 +25,31 @@ async def createOrder(request: OrderCreate, db: Session, current_user: Annotated
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Order already exists"
             )
+        # Calculate ETA using Google Maps
+        restaurant=db.query(Restaurant).filter(Restaurant.id==request.restaurant_id).first()
+        if not restaurant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Restaurant not found"
+            )
+
+
+        delivery_address = request.address
+        estimated_delivery_time = await get_eta(GOOGLE_MAPS_API_KEY,restaurant.address,delivery_address)
+
+
 
         # Create a new order
         new_order = Order(
+            restaurant_id=request.restaurant_id,
             customer_id=current_user.id,
             quantity=request.quantity,
             address=request.address,
             total_price=request.total_price,
             status=request.status,
-            payment_status=request.payment_status
+            payment_status=request.payment_status,
+            estimated_delivery_time=estimated_delivery_time
+
         )
         db.add(new_order)
         db.commit()
@@ -107,7 +127,7 @@ async def createOrder(request: OrderCreate, db: Session, current_user: Annotated
         # Link Razorpay order ID to the order
         new_order.payment_gateway_order_id = razorpay_order.get("id")
         db.commit()
-
+         # notify restaurant for new order
         return {
             "message": "Order created successfully",
             "data": new_order

@@ -13,17 +13,21 @@ from sqlalchemy.orm import Session
 
 from Schemas.users import UserBase
 
+from config.geolocation import get_location
 
-def register(user:UserCreate, db:Session):
+from config.envFile import GOOGLE_MAPS_API_KEY
+
+
+async def register(user:UserCreate, db:Session):
     existing_user=db.query(User).filter(User.email==user.email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already exists"
         )
-
+    response = await get_location(GOOGLE_MAPS_API_KEY, user.address)
     hash=hashPassword(user.password)
-    new_user=User(name=user.name,email=user.email,password=hash,role=user.role)
+    new_user=User(name=user.name,email=user.email,password=hash,role=user.role,address=user.address,current_latitude=response["lat"],current_longitude=response["lng"])
     db.add(new_user)
     try:
      db.commit()

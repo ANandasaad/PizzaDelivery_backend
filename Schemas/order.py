@@ -22,11 +22,13 @@ class Order(BaseModel):
     status:OrderStatus
     payment_status:PaymentStatus
 class OrderCreateModel(BaseModel):
+    restaurant_id: int
     quantity: int
     address: str
     total_price: float
     status: OrderStatus
     payment_status: PaymentStatus
+
 class CustomizationOption(BaseModel):
     customization_id: int
     customization:CustomizationPizzaResult
@@ -88,6 +90,9 @@ class OrderItemResponse(OrderItemBase):
 
 class OrderCreateResponse(Order):
     id: int
+    restaurant_id:int
+    estimated_delivery_time:str
+    expected_ready_time:str
     order_items: List[OrderItemResponse]
     created_at: datetime
     updated_at: datetime

@@ -16,8 +16,8 @@ user_router=APIRouter(
 )
 
 @user_router.post("/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(request:UserCreate, db:db_dependency):
-     return register(user=request,db=db)
+async def create_user(request:UserCreate, db:db_dependency):
+     return await register(user=request,db=db)
 @user_router.put("/update/{id}", response_model=UserResponse, status_code=status.HTTP_202_ACCEPTED)
 def update_user(request:UserBase, db:db_dependency, id:int, current_user:Annotated[User, Depends(get_current_user)]):
     return update(user=request,db=db,id=id, current_user=current_user)

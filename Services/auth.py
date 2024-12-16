@@ -1,6 +1,7 @@
 from Schemas.auth import Login
 from Models.models import User
 from fastapi import HTTPException, status,Depends
+from pydantic import constr
 from sqlalchemy.orm import Session
 
 from config.hashing import verifyPassword,createToken
@@ -14,6 +15,7 @@ async def loginUser(db:Session,form_data:Annotated[OAuth2PasswordRequestForm,Dep
         # check is user exists
 
         user=db.query(User).filter(User.email==form_data.username).first()
+        print(user,"user")
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

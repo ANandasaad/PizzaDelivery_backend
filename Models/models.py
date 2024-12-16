@@ -16,7 +16,12 @@ class User(Base):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.CUSTOMER)
+    address = Column(String, nullable=True)
+    current_latitude = Column(Float, nullable=True, default=0.0)
+    current_longitude = Column(Float, nullable=True, default=0.0)
+
     is_active = Column(Boolean, nullable=False, default=True)
+
     orders = relationship("Order", back_populates="customer")
 
 
@@ -117,13 +122,16 @@ class Order(Base):
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
     payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     total_price = Column(Float, nullable=False)
-    estimated_preparation_time = Column(Integer, nullable=True, default=25)  # Preparation time in minutes
-    expected_ready_time = Column(Integer, nullable=True, default=20)  # Calculated ready time
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False,)
+
+    estimated_delivery_time = Column(String, nullable=True, default="30mins")  # Preparation time in minutes
+    expected_ready_time = Column(String, nullable=True, default="20mins")  # Calculated ready time
     payment_gateway_order_id = Column(String, nullable=True)
     customer = relationship("User", back_populates="orders")
     payments = relationship("Payment", back_populates="order", cascade="all, delete")  # Added relationship
     order_items = relationship("OrderItem", back_populates="order", cascade="all, delete")
     delivery_personals = relationship("DeliveryPersonal", back_populates="orders")
+    restaurants= relationship("Restaurant", back_populates="orders")
     created_at = Column(DateTime,default=func.now(), nullable=False)
     updated_at = Column(DateTime,default=func.now(), nullable=False)
 
@@ -177,3 +185,4 @@ class Restaurant(Base):
     rating = Column(Float, nullable=True, default=0.0)
     # Relationship with the menu
     menus= relationship("Menu", back_populates="restaurants")
+    orders= relationship("Order", back_populates="restaurants")
