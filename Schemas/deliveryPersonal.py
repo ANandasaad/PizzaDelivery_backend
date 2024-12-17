@@ -10,10 +10,11 @@ class DeliveryPersonal(BaseModel):
     is_available: bool
     current_latitude: float
     current_longitude: float
+    address: str
 
 class Response(DeliveryPersonal):
     id:int
-    customer_order_id: int
+
     created_at: datetime
     updated_at: datetime
     class Config:
@@ -24,7 +25,8 @@ class DeliveryPersonalCreate(BaseModel):
     email: str
     password: str
     is_available: bool
-    customer_order_id: int
+    address: str
+
 
 
 class DeliveryPersonalResponse(BaseModel):

@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 
 from Database.db import get_db
 
-from Schemas.order import OrderCreate
-from Services.order import createOrder,getOrders,getOrderById,updateOrderStatusById
+from Schemas.order import OrderCreate,OrderUpdateForDelivery
+from Services.order import createOrder,getOrders,getOrderById,updateOrderStatusById,assignDeliveryPersonal
 from config.O2Auth import get_current_user
 from Schemas.order import OrderResponse,OrderListResponse
 from Models.models import OrderStatusByAdmin,User
@@ -33,4 +33,7 @@ async def get_order(id:int,db:db_dependency):
 @order_router.put("/{id}",response_model=OrderResponse, status_code=status.HTTP_200_OK)
 async def order_status_by_admin(id:int,db:db_dependency,request:OrderStatusByAdmin):
     return await updateOrderStatusById(db=db,id=id,request=request)
+@order_router.put("/{id}/assign-delivery-personal",response_model=OrderResponse, status_code=status.HTTP_200_OK)
+async def assign_delivery_personal(id:int,db:db_dependency, current_user: Annotated[User, Depends(get_current_user)]):
+    return await assignDeliveryPersonal(id=id,db=db,current_user=current_user)
 

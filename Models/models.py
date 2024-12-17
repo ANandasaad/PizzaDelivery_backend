@@ -2,7 +2,7 @@ import enum
 import time
 
 from Database.db import Base
-from sqlalchemy import Column, Integer, String, Boolean, Enum, Text, ForeignKey, Float, DateTime,func
+from sqlalchemy import Column, Integer, String, Boolean, Enum, Text, ForeignKey, Float, DateTime, func, ARRAY
 from sqlalchemy.orm import relationship
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
@@ -32,9 +32,12 @@ class DeliveryPersonal(Base):
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     is_available = Column(Boolean, nullable=False, default=True)
+    address = Column(String, nullable=True)
     current_latitude = Column(Float, nullable=True, default=0.0)
     current_longitude = Column(Float, nullable=True, default=0.0)
-    customer_order_id=Column(Integer, ForeignKey("orders.id",ondelete="CASCADE"), nullable=True)
+    current_order_id= Column(ARRAY(Integer),nullable=True, default=0)
+    current_order_count=Column(Integer,nullable=True, default=0)
+    max_order_capacity=Column(Integer,nullable=True, default=5)
     orders = relationship("Order", back_populates="delivery_personals")
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), nullable=False)
@@ -123,7 +126,7 @@ class Order(Base):
     payment_status = Column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
     total_price = Column(Float, nullable=False)
     restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False,)
-
+    delivery_personal_id = Column(Integer, ForeignKey("delivery_personals.id", ondelete="CASCADE"), nullable=True)
     estimated_delivery_time = Column(String, nullable=True, default="30mins")  # Preparation time in minutes
     expected_ready_time = Column(String, nullable=True, default="20mins")  # Calculated ready time
     payment_gateway_order_id = Column(String, nullable=True)

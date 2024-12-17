@@ -25,8 +25,6 @@ async def createRestaurant(request: CreateRestaurant, db: Session,
 
         # Fetch geolocation (latitude, longitude) using Google Maps API
         response = await get_location(GOOGLE_MAPS_API_KEY, request.address)
-        print(response)
-
         # Create a new restaurant entry
         new_restaurant = Restaurant(
             name=request.name,

@@ -105,4 +105,7 @@ class OrderResponse(BaseModel):
 class OrderListResponse(BaseModel):
     message: str
     data: List[OrderCreateResponse]
+class OrderUpdateForDelivery(BaseModel):
+    delivery_personal_id:int
+
 

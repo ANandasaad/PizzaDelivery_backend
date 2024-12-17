@@ -2,7 +2,7 @@ from fastapi import HTTPException, status, Depends
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from Models.models import Order, OrderStatus, PizzaOption,CustomizationOption,SelectedCustomization, OrderItem,OrderStatusByAdmin,User,Restaurant
-from Schemas.order import OrderCreate
+from Schemas.order import OrderCreate,OrderUpdateForDelivery
 from config.O2Auth import get_current_user
 from typing import Annotated
 import razorpay
@@ -11,6 +11,8 @@ import razorpay
 from config.eta import get_eta
 
 from config.envFile import GOOGLE_MAPS_API_KEY
+
+from utils.helper import find_nearby_delivery_partners
 
 razorpay_client = razorpay.Client(auth=("rzp_test_EbeJ1sVuROEPXt", "1j8KhICswNhMfDMTHpWwto29"))
 async def createOrder(request: OrderCreate, db: Session, current_user: Annotated[User, Depends(get_current_user)]):
@@ -205,3 +207,62 @@ async def updateOrderStatusById(id:int,db:Session,request:OrderStatusByAdmin):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again."
         )
+
+
+async def assignDeliveryPersonal(id:int,db:Session, current_user: Annotated[User, Depends(get_current_user)]):
+    try:
+        # check if order is exits and payment in completed
+        order= db.query(Order).filter(Order.id == id, Order.status=="confirmed", Order.payment_status=="completed").first()
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        # if order.status !=OrderStatus.PREPARING:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_400_BAD_REQUEST,
+        #         detail="Order is not ready for delivery"
+        #     )
+            #fetch the restaurant latitude and longitude
+        restaurant=db.query(Restaurant).filter(Restaurant.id==order.restaurant_id).first()
+        if not restaurant:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Restaurant not found"
+            )
+
+
+            # Fetch nearby delivery partners
+        nearby_partners = await find_nearby_delivery_partners(
+                db,
+                restaurant.latitude,
+                restaurant.longitude,
+                radius_km=15
+            )
+        print(nearby_partners, "Delivery")
+        if not nearby_partners:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No nearby delivery partners available"
+            )
+
+
+
+
+        # order.delivery_person_id=request.delivery_person_id
+        # order.status=OrderStatus.OUT_FOR_DELIVERY
+        # db.commit()
+        return {
+            "message": "Order assigned successfully",
+            "data": order
+        }
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
+
+
+
+
