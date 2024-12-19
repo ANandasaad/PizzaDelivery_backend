@@ -15,14 +15,33 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
+    phone = Column(String, nullable=False, unique=True)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.CUSTOMER)
-    address = Column(String, nullable=True)
-    current_latitude = Column(Float, nullable=True, default=0.0)
-    current_longitude = Column(Float, nullable=True, default=0.0)
+    # Add back_populates in User model:
+    addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
 
     is_active = Column(Boolean, nullable=False, default=True)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, nullable= False , default=func.now())
+    updated_at = Column(DateTime, nullable= False , default=func.now())
 
     orders = relationship("Order", back_populates="customer")
+class Address(Base):
+    __tablename__ = "addresses"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    address = Column(String, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    is_primary = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.now())
+
+    # relationship with user
+    user = relationship("User", back_populates="addresses")
+
+
+
 
 
 class DeliveryPersonal(Base):
@@ -35,10 +54,16 @@ class DeliveryPersonal(Base):
     address = Column(String, nullable=True)
     current_latitude = Column(Float, nullable=True, default=0.0)
     current_longitude = Column(Float, nullable=True, default=0.0)
-    current_order_id= Column(ARRAY(Integer),nullable=True, default=0)
     current_order_count=Column(Integer,nullable=True, default=0)
     max_order_capacity=Column(Integer,nullable=True, default=5)
     orders = relationship("Order", back_populates="delivery_personals")
+    current_orders = relationship(
+        "Order",
+        back_populates="delivery_personals",
+        primaryjoin="and_(Order.delivery_personal_id == DeliveryPersonal.id, "
+                    "Order.status.in_(['OUT_FOR_DELIVERY', 'READY']))",
+        viewonly=True  # Prevent accidental write operations
+    )
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), nullable=False)
 

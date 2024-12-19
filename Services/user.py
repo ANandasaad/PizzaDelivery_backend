@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from config.hashing import hashPassword
 from config.O2Auth import get_current_user
 from Schemas.users import UserCreate
-from Models.models import User
+from Models.models import User,Address
 from sqlalchemy.orm import Session
 
 
@@ -18,24 +18,66 @@ from config.geolocation import get_location
 from config.envFile import GOOGLE_MAPS_API_KEY
 
 
-async def register(user:UserCreate, db:Session):
-    existing_user=db.query(User).filter(User.email==user.email).first()
+async def register(user: UserCreate, db: Session):
+    # Check if the email already exists
+    existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already exists"
         )
-    response = await get_location(GOOGLE_MAPS_API_KEY, user.address)
-    hash=hashPassword(user.password)
-    new_user=User(name=user.name,email=user.email,password=hash,role=user.role,address=user.address,current_latitude=response["lat"],current_longitude=response["lng"])
+
+    # Prepare address locations
+    address_locations = []
+    for address_data in user.addresses:
+        # Fetch geolocation for the address
+        response = await get_location(GOOGLE_MAPS_API_KEY, address_data.address)
+        address_locations.append({
+            "address": address_data.address,
+            "latitude": response["lat"],
+            "longitude": response["lng"],
+            "is_primary": address_data.is_primary
+        })
+
+    # Hash the user's password
+    hashed_password = hashPassword(user.password)
+
+    # Create the new user instance
+    new_user = User(
+        name=user.name,
+        email=user.email,
+        password=hashed_password,
+        role=user.role,
+        phone=user.phone
+    )
     db.add(new_user)
+
     try:
-     db.commit()
-     db.refresh(new_user)
-     return new_user
+        # Commit the user to get their ID
+        db.commit()
+        db.refresh(new_user)
+
+        # Add user addresses
+        for address in address_locations:
+            user_address = Address(
+                user_id=new_user.id,
+                address=address["address"],
+                latitude=address["latitude"],
+                longitude=address["longitude"],
+                is_primary=address["is_primary"]
+            )
+            db.add(user_address)
+
+        # Final commit for all changes
+        db.commit()
+        db.refresh(new_user)
+        return new_user
     except IntegrityError:
-     db.rollback()
-     return {"error": "An unexpected error occurred. Please try again."}
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred. Please try again."
+        )
 
 def update(user:UserBase, db:Session, id:int, current_user:Annotated[User, Depends(get_current_user)]):
     if current_user.role !="customer":
