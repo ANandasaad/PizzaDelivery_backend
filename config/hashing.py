@@ -23,6 +23,7 @@ def createToken(data: dict):
 
 def verify_token(token:str, credentials_exception):
     try:
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         email: str = payload.get("email")

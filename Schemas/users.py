@@ -8,6 +8,7 @@ class AddressCreate(BaseModel):
     latitude: float | None = None
     longitude: float | None = None
     is_primary: bool
+    zipcode: int
 
     class Config:
         orm_mode = True
@@ -17,8 +18,8 @@ class UserBase(BaseModel):
     phone: str = Field(..., min_length=10, max_length=10, pattern=r"^[7-9]\d{9}$")
     role: UserRole | None = None  # Assuming UserRole is an Enum
     is_active: bool | None = None
-    addresses: List[AddressCreate]
 
+    addresses: List[AddressCreate]
 
 class UserCreate(UserBase):
     password: str
@@ -32,4 +33,16 @@ class UserResponse(UserBase):
 
     class Config:
         orm_mode = True
+
+class UserRegisterResponse(BaseModel):
+    message: str
+    data: UserResponse
+
+class VerifyOTP(BaseModel):
+    otp: str
+    email: EmailStr
+
+class ResendOtp(BaseModel):
+    email: EmailStr
+
 

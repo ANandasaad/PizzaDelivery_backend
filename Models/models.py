@@ -17,6 +17,8 @@ class User(Base):
     password = Column(String, nullable=False)
     phone = Column(String, nullable=False, unique=True)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.CUSTOMER)
+
+
     # Add back_populates in User model:
     addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
 
@@ -26,6 +28,8 @@ class User(Base):
     updated_at = Column(DateTime, nullable= False , default=func.now())
 
     orders = relationship("Order", back_populates="customer")
+    otp_requests = relationship("OtpRequest", back_populates="user")
+
 class Address(Base):
     __tablename__ = "addresses"
     id = Column(Integer, primary_key=True, index=True)
@@ -34,6 +38,7 @@ class Address(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     is_primary = Column(Boolean, nullable=False, default=False)
+    zipcode = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now())
 
@@ -42,6 +47,19 @@ class Address(Base):
 
 
 
+class OtpRequest(Base):
+    __tablename__ = "otp_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id= Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),nullable=False)
+    otp = Column(String, nullable=False)
+    expires_time=Column(DateTime, nullable=False)
+    attempts=Column(Integer, nullable=True, default=0)
+    lockout_time=Column(DateTime, nullable=True)
+
+    # relationship with user
+    user = relationship("User", back_populates="otp_requests")
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.now())
 
 
 class DeliveryPersonal(Base):
