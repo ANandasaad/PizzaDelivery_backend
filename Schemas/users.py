@@ -3,12 +3,16 @@ from typing import List
 
 from Models.models import UserRole
 
-class AddressCreate(BaseModel):
+class AddressResponse(BaseModel):
+    city: str
+    state: str
     address: str
+    additional_instructions: str | None = None
     latitude: float | None = None
     longitude: float | None = None
     is_primary: bool
     zipcode: int
+
 
     class Config:
         orm_mode = True
@@ -19,7 +23,7 @@ class UserBase(BaseModel):
     role: UserRole | None = None  # Assuming UserRole is an Enum
     is_active: bool | None = None
 
-    addresses: List[AddressCreate]
+
 
 class UserCreate(UserBase):
     password: str

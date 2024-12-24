@@ -29,17 +29,17 @@ async def register(user: UserCreate, db: Session):
         )
 
     # Prepare address locations
-    address_locations = []
-    for address_data in user.addresses:
-        # Fetch geolocation for the address
-        response = await get_location(GOOGLE_MAPS_API_KEY, address_data.address)
-        address_locations.append({
-            "address": address_data.address,
-            "latitude": response["lat"],
-            "longitude": response["lng"],
-            "is_primary": address_data.is_primary,
-            "zipcode": address_data.zipcode,
-        })
+    # address_locations = []
+    # for address_data in user.addresses:
+    #     # Fetch geolocation for the address
+    #     response = await get_location(GOOGLE_MAPS_API_KEY, address_data.address)
+    #     address_locations.append({
+    #         "address": address_data.address,
+    #         "latitude": response["lat"],
+    #         "longitude": response["lng"],
+    #         "is_primary": address_data.is_primary,
+    #         "zipcode": address_data.zipcode,
+    #     })
 
     # Hash the user's password
     hashed_password = hashPassword(user.password)
@@ -61,17 +61,17 @@ async def register(user: UserCreate, db: Session):
         db.commit()
         db.refresh(new_user)
 
-        # Add user addresses
-        for address in address_locations:
-            user_address = Address(
-                user_id=new_user.id,
-                address=address["address"],
-                zipcode=address["zipcode"],
-                latitude=address["latitude"],
-                longitude=address["longitude"],
-                is_primary=address["is_primary"]
-            )
-            db.add(user_address)
+        # # Add user addresses
+        # for address in address_locations:
+        #     user_address = Address(
+        #         user_id=new_user.id,
+        #         address=address["address"],
+        #         zipcode=address["zipcode"],
+        #         latitude=address["latitude"],
+        #         longitude=address["longitude"],
+        #         is_primary=address["is_primary"]
+        #     )
+        #     db.add(user_address)
 
         # Add otp request
         expiration_time = datetime.utcnow() + timedelta(minutes=5)

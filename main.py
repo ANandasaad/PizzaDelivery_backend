@@ -15,6 +15,7 @@ from Routers.auth import auth_router
 import asyncio
 
 from Routers.restaurant import restaurant_router
+from Routers.address import address_router
 
 app = FastAPI()
 
@@ -100,3 +101,4 @@ app.include_router(payment_router)
 app.include_router(deliveryPersonal_router)
 app.include_router(auth_router)
 app.include_router(restaurant_router)
+app.include_router(address_router)
