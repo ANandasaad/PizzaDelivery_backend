@@ -2,7 +2,7 @@ from Schemas.pizza import PizzaOptionCreate, PizzaOptionUpdate
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from Models.models import PizzaOption,Menu
+from Models.models import PizzaOption
 
 from Schemas.pizza import FilterParams,SortOrder
 
@@ -11,13 +11,7 @@ from Schemas.pizza import FilterParams,SortOrder
 
 async def createPizzaOption(request: PizzaOptionCreate, db: Session):
     try:
-       # Check if menu exists
-        menu_exists = db.query(Menu).filter(Menu.id == request.menu_id).first()
-        if not menu_exists:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Menu not found"
-            )
+
         # Check if option already exists
         option = db.query(PizzaOption).filter(PizzaOption.name == request.name).first()
         if option:

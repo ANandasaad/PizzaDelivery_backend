@@ -11,7 +11,7 @@ from .Routers.restaurant import restaurant_router
 from .Routers.address import address_router
 from .Schemas.users import *
 from .Services.user import *
-from .Services.menu import *
+from .Services.category import *
 from .Services.pizza import *
 from .Services.order import *
 from .Services.payment import *
@@ -21,7 +21,7 @@ from .Services.deliveryPersonal import *
 from .Services.address import *
 from .Services.restaurant import *
 from .config.hashing import *
-from .Schemas.menu import *
+from .schemas.category import *
 from .Schemas.pizza import *
 from .Schemas.payment import *
 from .Schemas.customization import *

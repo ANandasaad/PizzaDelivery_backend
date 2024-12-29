@@ -2,7 +2,8 @@ import enum
 import time
 
 from Database.db import Base
-from sqlalchemy import Column, Integer, String, Boolean, Enum, Text, ForeignKey, Float, DateTime, func, ARRAY
+from sqlalchemy import Column, Integer, String, Boolean, Enum, Text, ForeignKey, Float, DateTime, func, ARRAY, \
+    CheckConstraint
 from sqlalchemy.orm import relationship
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
@@ -98,32 +99,42 @@ class CustomizationType(str,enum.Enum):
 class PizzaType(str,enum.Enum):
     VEG = "veg"
     NONVEG= "non-veg"
-class Menu(Base):
-    __tablename__ = "menus"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String,unique=True, nullable=False)
-    description = Column(Text, nullable=True)
-    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False,)
 
-    pizzas = relationship("PizzaOption", back_populates="menu")
-    restaurants = relationship("Restaurant", back_populates="menus")
+class Categories(Base):
+    __tablename__ = "categories"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
+    pizza_option = relationship("PizzaOption", back_populates="category")
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), nullable=False)
+
+    __table_args__ =(
+        CheckConstraint("name ~ '^[A-Za-z0-9 -]+$'", name='check_category_name_valid_characters'),
+    )
+
+
+
 
 class PizzaOption(Base):
     __tablename__ = "pizza_options"
     id = Column(Integer, primary_key=True, index=True)
-    menu_id = Column(Integer, ForeignKey("menus.id"))
-
     name = Column(String, unique=True,nullable=False)
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     description = Column(Text, nullable=True)
     type = Column(Enum(PizzaType), nullable=False, default=PizzaType.VEG)
     image_url=Column(String, nullable=True)
     base_price = Column(Float, nullable=False)
     rating=Column(Float, nullable=True, default=0.0)
     isAvailable = Column(Boolean, nullable=False, default=True)
-    menu= relationship("Menu", back_populates="pizzas")
+
     # relationships
     customizations= relationship("CustomizationOption", back_populates="pizza_option")
     order_items = relationship("OrderItem", back_populates="pizza_option")
+    category = relationship("Categories", back_populates="pizza_option")
+
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), nullable=False)
 
 
 
@@ -136,6 +147,8 @@ class CustomizationOption(Base):
     price = Column(Float, nullable=False, default=0.0)
     pizza_option = relationship("PizzaOption", back_populates="customizations")
     selected_customizations = relationship("SelectedCustomization", back_populates="customization")
+    created_at = Column(DateTime, default=func.now(), nullable=False)
+    updated_at = Column(DateTime, default=func.now(), nullable=False)
 
 
 class OrderStatusByAdmin(str,enum.Enum):
@@ -206,6 +219,8 @@ class SelectedCustomization(Base):
     customization_price=Column(Float, nullable=False)
     order_item = relationship("OrderItem", back_populates="selected_customizations")
     customization = relationship("CustomizationOption", back_populates="selected_customizations")
+    created_at=Column(DateTime, default=func.now(), nullable=False)
+    updated_at=Column(DateTime, default=func.now(), nullable=False)
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -222,6 +237,7 @@ class Payment(Base):
     # Relationship with the order
     order = relationship("Order", back_populates="payments")
 
+
 class Restaurant(Base):
     __tablename__ = "restaurants"
     id = Column(Integer, primary_key=True, index=True)
@@ -230,9 +246,17 @@ class Restaurant(Base):
     phone = Column(String, nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
+    opening_hours = Column(ARRAY(String), nullable=False)
+    preparation_time = Column(Integer, default=20)  # Minutes
+    max_concurrent_orders = Column(Integer, default=20)
+    current_order_count = Column(Integer, default=0)
+    delivery_radius = Column(Float, nullable=False)  # In kilometers
+    is_accepting_orders = Column(Boolean, default=True)
+
+
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), nullable=False)
     rating = Column(Float, nullable=True, default=0.0)
     # Relationship with the menu
-    menus= relationship("Menu", back_populates="restaurants")
+
     orders= relationship("Order", back_populates="restaurants")

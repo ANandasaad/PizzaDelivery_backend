@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List
 import  enum
-from Schemas.menu import PizzaMenu
+
 
 
 class Restaurant(BaseModel):
@@ -19,7 +19,7 @@ class Response(Restaurant):
 
     id: int
     rating: float
-    menus: List[PizzaMenu]
+
     class Config:
         orm_mode = True
 

@@ -5,7 +5,7 @@ from starlette.websockets import WebSocket
 from Models import models
 from Database.db import engine
 from Routers.user import user_router
-from Routers.menu import menu_router
+
 from Routers.pizza import pizza_router
 from Routers.customization import customization_router
 from Routers.order import order_router
@@ -16,6 +16,7 @@ import asyncio
 
 from Routers.restaurant import restaurant_router
 from Routers.address import address_router
+from Routers.category import category_router
 
 app = FastAPI()
 
@@ -93,7 +94,7 @@ async def websocket_endpoint(websocket: WebSocket, orderId: int):
     except Exception as e:
         print(f"Connection closed: {e}")
 app.include_router(user_router)
-app.include_router(menu_router)
+
 app.include_router(pizza_router)
 app.include_router(customization_router)
 app.include_router(order_router)
@@ -102,3 +103,4 @@ app.include_router(deliveryPersonal_router)
 app.include_router(auth_router)
 app.include_router(restaurant_router)
 app.include_router(address_router)
+app.include_router(category_router)
